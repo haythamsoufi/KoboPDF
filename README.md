@@ -43,7 +43,7 @@ Repeat steps 5-7 for all submissions
 Print the total elapsed time
 
 # Example
-```username = "asdasd"```
+```username = "asdasd"
 password = "123123"
 token = "5e26fb155e26fb155e26fb1515e26fb1545325"
 start_date = "2022-04-17"
