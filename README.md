@@ -54,5 +54,4 @@ status = "Approved"
 ```
 
 # Notes
-The script assumes that the form has a namevar field that contains a unique name for each submission.
 The script uses the Page.printToPDF command from the Chrome DevTools Protocol to save the current page as PDF.
