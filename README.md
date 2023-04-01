@@ -24,10 +24,10 @@ start_date = "2022-01-01"
 end_date = "2022-12-31"
 form_id = "kobo_form_id"
 namevar = "namevar_field_name"
-status = "Not Approved"
-export_submissions_to_pdf(username, password, token, start_date, end_date)
-Return value
-The function does not return anything. The exported PDFs are saved to the current working directory.
+status = "Approved"
+
+# Return value
+The exported PDFs are saved to the current working directory.
 
 # Exceptions
 If any exception occurs during the execution of the script, the exception is printed to the console.
@@ -50,7 +50,8 @@ start_date = "2022-04-17"
 end_date = "2022-09-18"
 form_id = "anEnNVRefwerv329qJdAPg"
 namevar = "group_Introduction/Name"
-status = "Approved"```
+status = "Approved"
+```
 
 # Notes
 The script assumes that the form has a namevar field that contains a unique name for each submission.
