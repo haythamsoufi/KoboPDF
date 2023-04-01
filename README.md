@@ -1,12 +1,12 @@
 This script exports submissions of a Kobo form to PDF. The exported PDFs are named according to the namevar field in the form, the submission date, and the validation status of the submission. The script uses Selenium and the Chrome driver to retrieve the submissions from Kobo, and to export them to PDF.
 
-Dependencies
+#Dependencies
 Python 3.x
 selenium
 requests
 Chrome driver (download from https://chromedriver.chromium.org/ and provide the path to the driver in the driver_path variable)
 
-Function
+#Function
 The script exports submissions of a Kobo form to PDF.
 
 Parameters
