@@ -9,14 +9,14 @@ This script exports submissions of a Kobo form to PDF. The exported PDFs are nam
 # Function
 The script exports submissions of a Kobo form to PDF.
 
-Parameters
+# Parameters
 username : str - the Kobo username
 password : str - the Kobo password
 token : str - the Kobo API token
 start_date : str - the start date in the format "YYYY-MM-DD"
 end_date : str - the end date in the format "YYYY-MM-DD"
 
-Usage
+# Usage
 username = "kobo_username"
 password = "kobo_password"
 token = "kobo_api_token"
@@ -29,7 +29,7 @@ export_submissions_to_pdf(username, password, token, start_date, end_date)
 Return value
 The function does not return anything. The exported PDFs are saved to the current working directory.
 
-Exceptions
+# Exceptions
 If any exception occurs during the execution of the script, the exception is printed to the console.
 Algorithm
 Set up Chrome options and driver
@@ -42,16 +42,16 @@ Print the name of the exported PDF and the elapsed time
 Repeat steps 5-7 for all submissions
 Print the total elapsed time
 
-Example
-username = "asdasd"
+# Example
+```username = "asdasd"```
 password = "123123"
 token = "5e26fb155e26fb155e26fb1515e26fb1545325"
 start_date = "2022-04-17"
 end_date = "2022-09-18"
 form_id = "anEnNVRefwerv329qJdAPg"
 namevar = "group_Introduction/Name"
-status = "Approved"
+status = "Approved"```
 
-Notes
+# Notes
 The script assumes that the form has a namevar field that contains a unique name for each submission.
 The script uses the Page.printToPDF command from the Chrome DevTools Protocol to save the current page as PDF.
