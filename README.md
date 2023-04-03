@@ -32,15 +32,15 @@ The exported PDFs are saved to the current working directory.
 # Exceptions
 If any exception occurs during the execution of the script, the exception is printed to the console.
 Algorithm
-Set up Chrome options and driver
-Log in to Kobo
-Retrieve the list of form submissions
-Parse the JSON response
-Export submissions to PDF
-Save the current page as PDF
-Print the name of the exported PDF and the elapsed time
-Repeat steps 5-7 for all submissions
-Print the total elapsed time
+1. Set up Chrome options and driver
+2. Log in to Kobo
+3. Retrieve the list of form submissions
+3. Parse the JSON response
+4. Export submissions to PDF
+5. Save the current page as PDF
+6. Print the name of the exported PDF and the elapsed time
+7. Repeat steps 5-7 for all submissions
+8. Print the total elapsed time
 
 # Example
 ```username = "asdasd"
