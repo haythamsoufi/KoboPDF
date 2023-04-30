@@ -4,7 +4,7 @@ The KoboPDF Tool is a desktop application that allows users to export Kobo form 
 1. Python 3.x
 2. selenium
 3. requests
-4. Chrome driver (download from https://chromedriver.chromium.org/ and provide the path to the driver in the driver_path variable)
+4. Chrome driver (https://chromedriver.chromium.org/)
 
 # Function
 The script exports submissions of a Kobo form to PDF.
