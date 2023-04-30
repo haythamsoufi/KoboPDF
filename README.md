@@ -9,13 +9,6 @@ The KoboPDF Tool is a desktop application that allows users to export Kobo form 
 # Function
 The script exports submissions of a Kobo form to PDF.
 
-# Parameters
-username : str - the Kobo username
-password : str - the Kobo password
-token : str - the Kobo API token
-start_date : str - the start date in the format "YYYY-MM-DD"
-end_date : str - the end date in the format "YYYY-MM-DD"
-
 # Usage
 To use the KoboPDF Tool, follow these steps:
 
