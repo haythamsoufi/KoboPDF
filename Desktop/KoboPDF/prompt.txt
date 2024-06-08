@@ -1,0 +1,1 @@
+pyinstaller --onefile --noconsole --clean --exclude-module PyObjB --exclude-module pygame --exclude-module enchant --exclude-module PyQt4 --exclude-module PyQt5 --exclude-module numpy --add-data "chromedriver.exe;." --add-data "Kobopdf.png;." --icon=Kobopdf.ico 
