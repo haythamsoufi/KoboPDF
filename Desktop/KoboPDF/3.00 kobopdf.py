@@ -1,27 +1,26 @@
 import os
 import sys
 import timeit
-import requests
 import traceback
 import configparser
 import webbrowser
 from base64 import b64decode
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QFileDialog, QProgressBar, QTextEdit, QMessageBox, QComboBox, QGridLayout, QStyle)
-from PyQt5.QtGui import QIcon, QCursor
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QHBoxLayout, QFileDialog, 
+                             QProgressBar, QTextEdit, QMessageBox, QComboBox, QGridLayout, QStyle, QDesktopWidget)
+from PyQt5.QtGui import QIcon, QPixmap  # For application and window icon handling
+from PyQt5.QtCore import QThread, pyqtSignal, Qt  # Core functionality of PyQt (signals, slots, and threading)
 from datetime import datetime, timedelta
 from webdriver_manager.chrome import ChromeDriverManager
 
-# Current version of the application
-CURRENT_VERSION = "v3.0"
+CURRENT_VERSION = "v3.1"
 
-# Helper function to get resource path
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
@@ -42,7 +41,7 @@ def read_default_values():
             "end_date": "2023-12-31",
             "form_id": "",
             "namevar": "",
-            "status": "Approved",
+            "status": "All",
             "export_folder": os.path.join(os.getcwd(), "Export folder")
         }
         config["DEFAULT"] = default_values
@@ -86,6 +85,8 @@ class ExportWorker(QThread):
 
     def run(self):
         driver = None
+        total_elapsed_time = 0  # Track the total elapsed time from start to finish
+
         try:
             chrome_options = Options()
             chrome_options.add_argument("--disable-gpu")
@@ -96,7 +97,7 @@ class ExportWorker(QThread):
             # Use WebDriverManager to get the appropriate ChromeDriver
             driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-            start_time = timeit.default_timer()
+            start_time = timeit.default_timer()  # Start overall timing
 
             # Log in to Kobo
             driver.get("https://kobonew.ifrc.org/accounts/login/")
@@ -108,7 +109,7 @@ class ExportWorker(QThread):
             login_elapsed_time = timeit.default_timer() - start_time
 
             # Retrieve form submissions
-            start_time = timeit.default_timer()
+            submission_start_time = timeit.default_timer()
             end_date_obj = datetime.strptime(self.end_date, '%Y-%m-%d') + timedelta(days=1)
             end_date = end_date_obj.strftime('%Y-%m-%d')
             if self.status == "All":
@@ -122,16 +123,20 @@ class ExportWorker(QThread):
             submissions = [s["_id"] for s in results]
             num_files = len(submissions)
 
+            submission_elapsed_time = timeit.default_timer() - submission_start_time
+
             self.update_progress.emit(f"Time taken to log in: {login_elapsed_time:.2f} seconds\n", 0, False)
+            self.update_progress.emit(f"Time taken to retrieve submissions: {submission_elapsed_time:.2f} seconds\n\n", 0, False)
             self.update_progress.emit(f"Total submissions to be exported: {num_files}\n" + "-" * 40 + "\n", 0, False)
 
-            total_time = 0
+            total_time = 0  # Total time taken for exporting individual files
+
             for i, submission in enumerate(submissions):
                 if self.cancel_flag:
                     self.finished.emit(True, "Export process canceled by the user.")
                     return
 
-                start_time = timeit.default_timer()
+                file_start_time = timeit.default_timer()
                 submission_url = f"https://kobonew.ifrc.org/api/v2/assets/{self.form_id}/data/{submission}/enketo/view/"
                 response = requests.get(submission_url, headers=headers)
                 response.raise_for_status()
@@ -140,12 +145,26 @@ class ExportWorker(QThread):
                 WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "form-title")))
                 driver.switch_to.window(driver.window_handles[-1])
 
-                pdf_name = f"{results[i][self.namevar]}_{results[i]['_submission_time'][:10].replace('-', '')}_{results[i]['_validation_status']['label']}.pdf"
+                # Validate the necessary fields exist for naming the PDF
+                name = results[i].get(self.namevar, "unknown")
+                submission_time = results[i].get('_submission_time', 'unknown').split('T')[0].replace('-', '')
+                validation_status = results[i].get('_validation_status', {})
+                label = validation_status.get('label', '')
+
+                # Construct the file name with conditional underscore for the label
+                if label:
+                    pdf_name = f"{name}_{submission_time}_{label}.pdf"
+                else:
+                    pdf_name = f"{name}_{submission_time}.pdf"
 
                 if os.path.exists(os.path.join(self.export_path, pdf_name)):
                     file_number = 1
                     while True:
-                        numbered_pdf_name = f"{results[i][self.namevar]}_{results[i]['_submission_time'][:10].replace('-', '')}_{results[i]['_validation_status']['label']} ({file_number}).pdf"
+                        if label:
+                            numbered_pdf_name = f"{name}_{submission_time}_{label} ({file_number}).pdf"
+                        else:
+                            numbered_pdf_name = f"{name}_{submission_time} ({file_number}).pdf"
+
                         if not os.path.exists(os.path.join(self.export_path, numbered_pdf_name)):
                             pdf_name = numbered_pdf_name
                             break
@@ -167,12 +186,12 @@ class ExportWorker(QThread):
 
                 driver.switch_to.window(driver.window_handles[0])
 
-                elapsed_time = timeit.default_timer() - start_time
-                total_time += elapsed_time
+                file_elapsed_time = timeit.default_timer() - file_start_time
+                total_time += file_elapsed_time
                 progress = (i + 1) / num_files * 100
-                self.update_progress.emit(f"{i + 1}. {pdf_name} [in {elapsed_time:.2f} seconds]\n", progress, False)
+                self.update_progress.emit(f"{i + 1}. {pdf_name} [in {file_elapsed_time:.2f} seconds]\n", progress, False)
 
-            total_elapsed_time = timeit.default_timer() - start_time
+            total_elapsed_time = timeit.default_timer() - start_time  # Calculate the total time from start to finish
             self.finished.emit(False, f"Total elapsed time: {total_elapsed_time:.2f} seconds\nAll submissions were exported to PDF successfully.\n")
 
         except Exception as e:
@@ -195,17 +214,16 @@ class ExportSubmissionsToPdf(QWidget):
 
     def initUI(self):
         self.setWindowTitle(f"KoboPDF Tool {CURRENT_VERSION}")
-        self.setWindowIcon(QIcon(resource_path("Kobopdf.ico")))
-        self.setGeometry(100, 100, 700, 500)  # Set a wider default size for the main window
+
+        # Load the icon and set it for the app and window
+        icon_path = resource_path("Kobopdf.png")
+        self.setWindowIcon(QIcon(icon_path))
+        
+        # Set window size and center it
+        self.setGeometry(100, 100, 700, 500)
+        self.center_window()
 
         main_layout = QVBoxLayout()
-
-        # Center the window on the desktop
-        screen = QApplication.primaryScreen().geometry()
-        window = self.geometry()
-        x = (screen.width() - window.width()) // 2
-        y = (screen.height() - window.height()) // 2
-        self.move(x, y)
 
         # Title and GitHub link in a horizontal layout, centered
         title_github_layout = QHBoxLayout()
@@ -317,6 +335,13 @@ class ExportSubmissionsToPdf(QWidget):
         main_layout.addWidget(self.output_text)
 
         self.setLayout(main_layout)
+
+    def center_window(self):
+        # Center the window on the screen
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
     def select_export_folder(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Export Folder")
